@@ -62,6 +62,18 @@ def scan(
         console.print(f"[dim]Format: {format}, Fail on: {fail_on}[/dim]")
 
     engine = ScanEngine(tool_config)
+
+    if format == "console":
+        from llm_authz_audit.core.rule import RuleLoader
+        from llm_authz_audit.output.banner import print_banner
+
+        print_banner(
+            console,
+            target=target,
+            analyzers_loaded=len(engine.analyzers),
+            rules_loaded=len(RuleLoader.load_all_builtin()),
+        )
+
     result = engine.scan()
 
     if verbose:

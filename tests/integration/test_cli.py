@@ -49,6 +49,20 @@ class TestCLIScan:
         result = runner.invoke(app, ["scan", str(tmp_path), "--fail-on", "critical"])
         assert result.exit_code == 1  # SEC001 is critical
 
+    def test_scan_console_shows_banner(self, tmp_path):
+        (tmp_path / "app.py").write_text('x = 1\n')
+        result = runner.invoke(app, ["scan", str(tmp_path)])
+        assert "authz-audit" in result.output
+        assert "Analyzers:" in result.output
+
+    def test_scan_json_has_no_banner(self, tmp_path):
+        import json
+        (tmp_path / "app.py").write_text('x = 1\n')
+        result = runner.invoke(app, ["scan", str(tmp_path), "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "findings" in data
+
 
 class TestCLIListAnalyzers:
     def test_list_analyzers(self):
