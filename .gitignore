@@ -11,3 +11,5 @@ build/
 .venv/
 venv/
 .env
+npm/.venv/
+npm/node_modules/

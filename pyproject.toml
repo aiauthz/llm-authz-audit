@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Static security analyzer for LLM applications — eslint for LLM security"
 requires-python = ">=3.11"
 license = "MIT"
+readme = "README.md"
 dependencies = [
     "typer>=0.12",
     "rich>=13.0",
