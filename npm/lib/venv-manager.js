@@ -5,6 +5,8 @@ const fs = require("fs");
 const { execFileSync } = require("child_process");
 const { findPython, MIN_MAJOR, MIN_MINOR } = require("./python-resolver");
 
+const PKG = require("../package.json");
+
 const VENV_DIR = path.join(__dirname, "..", ".venv");
 const PIP_PACKAGE = "llm-authz-audit";
 const REPO_ROOT = path.join(__dirname, "..", "..");
@@ -65,7 +67,7 @@ function setup() {
       stdio: "inherit",
     });
   } else {
-    execFileSync(pip, ["-m", "pip", "install", PIP_PACKAGE], {
+    execFileSync(pip, ["-m", "pip", "install", `${PIP_PACKAGE}==${PKG.version}`], {
       stdio: "inherit",
     });
   }

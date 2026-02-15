@@ -194,6 +194,26 @@ Before opening a PR, verify:
 - [ ] New rules have valid YAML schema and OWASP mapping
 - [ ] Commit messages are clear and descriptive
 
+## Releasing
+
+Releases are automated via GitHub Actions. When a version tag is pushed, CI publishes to PyPI and npm automatically.
+
+```bash
+# Bump version in pyproject.toml + npm/package.json, commit, and tag
+./scripts/bump-version.sh 1.1.0
+
+# Push to trigger the release workflow
+git push origin main --tags
+```
+
+The release workflow will:
+1. Run the full test suite
+2. Publish to PyPI (via OIDC trusted publishing)
+3. Publish to npm (via `NODE_AUTH_TOKEN` secret)
+4. Create a GitHub Release with auto-generated notes
+
+**Important**: PyPI is published before npm because the npm wrapper installs from PyPI at runtime.
+
 ## Reporting Issues
 
 ### Bug reports
