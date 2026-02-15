@@ -70,3 +70,21 @@ class TestPrintBanner:
     def test_no_config_when_none(self):
         output = self._render()
         assert "Config:" not in output
+
+    def test_shows_min_confidence(self):
+        output = self._render(min_confidence="medium")
+        assert "medium" in output
+        assert "Min conf:" in output
+
+    def test_no_min_confidence_when_none(self):
+        output = self._render()
+        assert "Min conf:" not in output
+
+    def test_shows_suppress_file(self):
+        output = self._render(suppress_file=Path("/my/suppress.yaml"))
+        assert "suppress.yaml" in output
+        assert "Suppress:" in output
+
+    def test_no_suppress_when_none(self):
+        output = self._render()
+        assert "Suppress:" not in output

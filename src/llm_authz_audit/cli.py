@@ -12,7 +12,7 @@ from rich.table import Table
 
 from llm_authz_audit.core.config import ToolConfig
 from llm_authz_audit.core.engine import ScanEngine
-from llm_authz_audit.core.finding import Severity
+from llm_authz_audit.core.finding import Confidence, Severity
 from llm_authz_audit.output.formatter import FormatterFactory
 
 app = typer.Typer(
@@ -26,15 +26,19 @@ console = Console()
 @app.command()
 def scan(
     path: Annotated[Path, typer.Argument(help="Target directory to scan")] = Path("."),
-    format: Annotated[str, typer.Option("--format", help="Output format: console|json")] = "console",
+    format: Annotated[str, typer.Option("--format", help="Output format: console|json|sarif")] = "console",
     fail_on: Annotated[str, typer.Option("--fail-on", help="Minimum severity to fail: critical|high|medium|low")] = "high",
     analyzers: Annotated[Optional[str], typer.Option("--analyzers", help="Comma-separated list of analyzers to enable")] = None,
     exclude: Annotated[Optional[str], typer.Option("--exclude", help="Comma-separated glob patterns to skip")] = None,
     ai: Annotated[bool, typer.Option("--ai", help="Enable LLM-powered deep analysis")] = False,
     ai_provider: Annotated[str, typer.Option("--ai-provider", help="AI provider: openai|anthropic")] = "anthropic",
     ai_model: Annotated[str, typer.Option("--ai-model", help="AI model name")] = "claude-sonnet-4-5-20250929",
+    ai_max_findings: Annotated[int, typer.Option("--ai-max-findings", help="Max findings to send to AI (default 20)")] = 20,
     config: Annotated[Optional[Path], typer.Option("--config", help="Path to config file")] = None,
     suppress: Annotated[Optional[Path], typer.Option("--suppress", help="Path to suppression file")] = None,
+    extra_rules: Annotated[Optional[str], typer.Option("--extra-rules", help="Comma-separated paths to custom rule YAML dirs")] = None,
+    diff: Annotated[Optional[str], typer.Option("--diff", help="Only scan files changed since this git ref")] = None,
+    min_confidence: Annotated[Optional[str], typer.Option("--min-confidence", help="Minimum confidence to include: low|medium|high")] = None,
     quiet: Annotated[bool, typer.Option("-q", "--quiet", help="Suppress the intro banner")] = False,
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show debug output")] = False,
 ) -> None:
@@ -56,6 +60,10 @@ def scan(
         ai_provider=ai_provider,
         ai_model=ai_model,
         config_file=config,
+        extra_rule_dirs=[Path(p.strip()) for p in extra_rules.split(",")] if extra_rules else [],
+        ai_max_findings=ai_max_findings,
+        diff_ref=diff,
+        min_confidence=Confidence(min_confidence) if min_confidence else None,
     )
 
     if verbose:
@@ -64,7 +72,7 @@ def scan(
 
     engine = ScanEngine(tool_config)
 
-    if format == "console" and not quiet:
+    if format not in ("json", "sarif") and not quiet:
         from llm_authz_audit.core.rule import RuleLoader
         from llm_authz_audit.output.banner import print_banner
 
@@ -76,9 +84,16 @@ def scan(
             fail_on=fail_on,
             exclude_patterns=exclude.split(",") if exclude else None,
             config_file=config,
+            suppress_file=suppress,
+            min_confidence=min_confidence,
         )
 
-    result = engine.scan()
+    show_spinner = format not in ("json", "sarif") and not quiet
+    if show_spinner:
+        with console.status("[bold #10b981]Scanning...[/bold #10b981]", spinner="dots"):
+            result = engine.scan()
+    else:
+        result = engine.scan()
 
     if verbose:
         console.print(f"[dim]Files scanned: {result.files_scanned}[/dim]")
@@ -91,7 +106,7 @@ def scan(
         try:
             from llm_authz_audit.llm.ai_analyzer import AIAnalyzer
             ai_analyzer = AIAnalyzer(provider=ai_provider, model=ai_model)
-            result = ai_analyzer.refine(result, engine)
+            result = ai_analyzer.refine(result, engine, max_findings=ai_max_findings)
         except ImportError:
             console.print("[yellow]Warning: AI dependencies not installed. Run: pip install llm-authz-audit[ai][/yellow]")
 
@@ -119,11 +134,16 @@ def list_analyzers() -> None:
 
 
 @app.command("list-rules")
-def list_rules() -> None:
+def list_rules(
+    extra_rules: Annotated[Optional[str], typer.Option("--extra-rules", help="Comma-separated paths to custom rule YAML dirs")] = None,
+) -> None:
     """Show all rules with IDs and severity."""
     from llm_authz_audit.core.rule import RuleLoader
 
     rules = RuleLoader.load_all_builtin()
+    if extra_rules:
+        for dir_path in extra_rules.split(","):
+            rules.extend(RuleLoader.load_directory(Path(dir_path.strip())))
 
     table = Table(title="Built-in Rules", show_header=True, header_style="bold")
     table.add_column("ID", style="bold")

@@ -25,11 +25,20 @@ class AIAnalyzer:
     ) -> None:
         self._provider = llm_client or get_provider(provider, model)
 
-    def refine(self, result: ScanResult, engine: ScanEngine) -> ScanResult:
-        """Review each finding with the LLM and update confidence."""
+    def refine(self, result: ScanResult, engine: ScanEngine, max_findings: int = 20) -> ScanResult:
+        """Review each finding with the LLM and update confidence.
+
+        Only the top *max_findings* by severity are sent to the LLM.
+        Remaining findings are kept as-is.
+        """
+        # Sort by severity desc so critical/high get reviewed first
+        sorted_findings = sorted(result.findings, key=lambda f: f.severity, reverse=True)
+        to_review = sorted_findings[:max_findings]
+        skipped = sorted_findings[max_findings:]
+
         refined_findings: list[Finding] = []
 
-        for finding in result.findings:
+        for finding in to_review:
             context = self._get_context(finding, engine)
             prompt = build_finding_review_prompt(
                 rule_id=finding.rule_id,
@@ -58,6 +67,7 @@ class AIAnalyzer:
 
             refined_findings.append(finding)
 
+        refined_findings.extend(skipped)
         result.findings = refined_findings
         return result
 

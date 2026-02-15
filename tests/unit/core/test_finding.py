@@ -60,3 +60,20 @@ class TestFinding:
 class TestConfidence:
     def test_ai_verified(self):
         assert Confidence.AI_VERIFIED.value == "ai_verified"
+
+    def test_ordering(self):
+        assert Confidence.LOW < Confidence.MEDIUM < Confidence.HIGH < Confidence.AI_VERIFIED
+
+    def test_ge(self):
+        assert Confidence.HIGH >= Confidence.MEDIUM
+        assert Confidence.HIGH >= Confidence.HIGH
+
+    def test_le(self):
+        assert Confidence.LOW <= Confidence.HIGH
+        assert Confidence.MEDIUM <= Confidence.MEDIUM
+
+    def test_gt_false(self):
+        assert not Confidence.LOW > Confidence.HIGH
+
+    def test_not_comparable_to_other_types(self):
+        assert Confidence.HIGH.__lt__("high") is NotImplemented

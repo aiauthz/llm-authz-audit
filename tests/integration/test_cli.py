@@ -76,6 +76,50 @@ class TestCLIScan:
         result = runner.invoke(app, ["scan", str(tmp_path), "--exclude", "tests/*,*.md"])
         assert "Exclude:" in result.output
 
+    def test_scan_min_confidence_filters_low(self, tmp_path):
+        # IV001 fires with Confidence.LOW — should be hidden with --min-confidence medium
+        code = '''\
+from flask import Flask, request
+import openai
+
+app = Flask(__name__)
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    prompt = data["prompt"]
+    return openai.ChatCompletion.create(prompt=prompt)
+'''
+        (tmp_path / "app.py").write_text(code)
+        # Without filter: IV001 should appear
+        result = runner.invoke(app, ["scan", str(tmp_path), "--format", "json"])
+        import json
+        data = json.loads(result.output)
+        rule_ids = [f["rule_id"] for f in data["findings"]]
+        assert "IV001" in rule_ids
+
+        # With --min-confidence medium: IV001 (LOW confidence) should be hidden
+        result2 = runner.invoke(app, ["scan", str(tmp_path), "--format", "json", "--min-confidence", "medium"])
+        data2 = json.loads(result2.output)
+        rule_ids2 = [f["rule_id"] for f in data2["findings"]]
+        assert "IV001" not in rule_ids2
+
+    def test_scan_with_suppress_file(self, tmp_path):
+        import json
+        (tmp_path / "app.py").write_text('API_KEY = "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"\n')
+        suppress_file = tmp_path / "suppress.yaml"
+        suppress_file.write_text(
+            'suppressions:\n'
+            '  - rule_id: SEC001\n    reason: "Test fixture"\n'
+            '  - rule_id: SEC005\n    reason: "Test fixture"\n'
+        )
+        result = runner.invoke(app, ["scan", str(tmp_path), "--format", "json", "--suppress", str(suppress_file)])
+        data = json.loads(result.output)
+        rule_ids = [f["rule_id"] for f in data["findings"]]
+        assert "SEC001" not in rule_ids
+        assert "SEC005" not in rule_ids
+        assert result.exit_code == 0
+
 
 class TestCLIListAnalyzers:
     def test_list_analyzers(self):
@@ -87,13 +131,14 @@ class TestCLIListAnalyzers:
 
     def test_list_analyzers_count(self):
         result = runner.invoke(app, ["list-analyzers"])
-        # Should list all 11 analyzers
+        # Should list all 13 analyzers
         expected = [
             "SecretsAnalyzer", "EndpointAnalyzer", "ToolRBACAnalyzer",
             "RAGACLAnalyzer", "MCPPermissionAnalyzer", "SessionIsolationAnalyzer",
             "RateLimitingAnalyzer", "OutputFilteringAnalyzer",
             "CredentialForwardingAnalyzer", "AuditLoggingAnalyzer",
-            "InputValidationAnalyzer",
+            "InputValidationAnalyzer", "PromptInjectionAnalyzer",
+            "JSEndpointAnalyzer",
         ]
         for name in expected:
             assert name in result.output

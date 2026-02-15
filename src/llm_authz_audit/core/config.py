@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from llm_authz_audit.core.finding import Severity
+from llm_authz_audit.core.finding import Confidence, Severity
 
 
 @dataclass
@@ -22,6 +22,9 @@ class ToolConfig:
     ai_model: str = "claude-sonnet-4-5-20250929"
     config_file: Path | None = None
     extra_rule_dirs: list[Path] = field(default_factory=list)
+    ai_max_findings: int = 20
+    diff_ref: str | None = None
+    min_confidence: Confidence | None = None
 
     @classmethod
     def from_dict(cls, data: dict) -> ToolConfig:
@@ -35,4 +38,6 @@ class ToolConfig:
             data["config_file"] = Path(data["config_file"])
         if "extra_rule_dirs" in data:
             data["extra_rule_dirs"] = [Path(p) for p in data["extra_rule_dirs"]]
+        if "min_confidence" in data and isinstance(data["min_confidence"], str):
+            data["min_confidence"] = Confidence(data["min_confidence"])
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})

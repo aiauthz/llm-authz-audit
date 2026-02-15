@@ -41,6 +41,28 @@ class Confidence(str, Enum):
     LOW = "low"
     AI_VERIFIED = "ai_verified"
 
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Confidence):
+            return NotImplemented
+        order = [Confidence.LOW, Confidence.MEDIUM, Confidence.HIGH, Confidence.AI_VERIFIED]
+        return order.index(self) < order.index(other)
+
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, Confidence):
+            return NotImplemented
+        return self == other or self < other
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, Confidence):
+            return NotImplemented
+        order = [Confidence.LOW, Confidence.MEDIUM, Confidence.HIGH, Confidence.AI_VERIFIED]
+        return order.index(self) > order.index(other)
+
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, Confidence):
+            return NotImplemented
+        return self == other or self > other
+
 
 @dataclass
 class Finding:

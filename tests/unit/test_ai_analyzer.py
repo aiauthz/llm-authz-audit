@@ -150,3 +150,60 @@ class TestAIAnalyzer:
         verdict, confidence, explanation = analyzer._parse_response("Something unexpected")
         assert verdict == "TRUE_POSITIVE"
         assert confidence == "MEDIUM"
+
+    def test_max_findings_caps_calls(self, tmp_path):
+        mock_llm = MockLLMProvider(
+            response="VERDICT: TRUE_POSITIVE\nCONFIDENCE: HIGH\nEXPLANATION: Real.\nREMEDIATION: Fix."
+        )
+        (tmp_path / "app.py").write_text('x = 1\n')
+        config = ToolConfig(target_path=tmp_path)
+        engine = ScanEngine(config)
+
+        findings = [_make_finding(rule_id=f"SEC{i:03d}", line_number=i) for i in range(5)]
+        result = _make_result(findings)
+
+        analyzer = AIAnalyzer(llm_client=mock_llm)
+        refined = analyzer.refine(result, engine, max_findings=2)
+
+        assert len(mock_llm.calls) == 2
+        assert len(refined.findings) == 5  # All kept, only 2 reviewed
+
+    def test_max_findings_prioritizes_severity(self, tmp_path):
+        mock_llm = MockLLMProvider(
+            response="VERDICT: TRUE_POSITIVE\nCONFIDENCE: HIGH\nEXPLANATION: Real.\nREMEDIATION: Fix."
+        )
+        (tmp_path / "app.py").write_text('x = 1\n')
+        config = ToolConfig(target_path=tmp_path)
+        engine = ScanEngine(config)
+
+        findings = [
+            _make_finding(rule_id="LOW001", severity=Severity.LOW, line_number=1),
+            _make_finding(rule_id="CRIT001", severity=Severity.CRITICAL, line_number=2),
+            _make_finding(rule_id="MED001", severity=Severity.MEDIUM, line_number=3),
+        ]
+        result = _make_result(findings)
+
+        analyzer = AIAnalyzer(llm_client=mock_llm)
+        refined = analyzer.refine(result, engine, max_findings=1)
+
+        # Only CRIT001 should be reviewed (AI_VERIFIED)
+        assert len(mock_llm.calls) == 1
+        verified = [f for f in refined.findings if f.confidence == Confidence.AI_VERIFIED]
+        assert len(verified) == 1
+        assert verified[0].rule_id == "CRIT001"
+
+    def test_no_cap_when_under_limit(self, tmp_path):
+        mock_llm = MockLLMProvider(
+            response="VERDICT: TRUE_POSITIVE\nCONFIDENCE: HIGH\nEXPLANATION: Real.\nREMEDIATION: Fix."
+        )
+        (tmp_path / "app.py").write_text('x = 1\n')
+        config = ToolConfig(target_path=tmp_path)
+        engine = ScanEngine(config)
+
+        findings = [_make_finding(rule_id=f"SEC{i:03d}", line_number=i) for i in range(3)]
+        result = _make_result(findings)
+
+        analyzer = AIAnalyzer(llm_client=mock_llm)
+        refined = analyzer.refine(result, engine, max_findings=10)
+
+        assert len(mock_llm.calls) == 3  # All reviewed

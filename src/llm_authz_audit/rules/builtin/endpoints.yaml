@@ -20,3 +20,14 @@ rules:
     remediation: "Add rate limiting middleware (e.g., slowapi, fastapi-limiter)."
     description: "LLM endpoint without rate limiting — vulnerable to abuse and cost attacks."
     analyzer: "EndpointAnalyzer"
+
+  - id: EP003
+    title: "JS/TS LLM endpoint without authentication"
+    severity: high
+    pattern: '(?:app|router|server)\.\s*(?:get|post|put|patch|delete)\s*\(\s*["\x27]/.*["\x27]'
+    file_types: ["*.js", "*.ts", "*.jsx", "*.tsx"]
+    suppress_if: ["passport", "jwt.verify", "jsonwebtoken", "auth", "bearer"]
+    owasp_llm: "LLM02"
+    remediation: "Add authentication middleware (e.g., passport, JWT verification) to LLM-facing endpoints."
+    description: "JavaScript/TypeScript route in a file with LLM usage has no visible authentication."
+    analyzer: "JSEndpointAnalyzer"

@@ -67,12 +67,40 @@ def _should_skip_file(
     return False
 
 
+def get_diff_files(target_path: Path, ref: str) -> set[str]:
+    """Get files changed since *ref* using git diff.
+
+    Returns relative paths. Returns empty set on any failure.
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "--diff-filter=ACMR", ref],
+            capture_output=True,
+            text=True,
+            cwd=target_path,
+            timeout=30,
+        )
+        if result.returncode != 0:
+            return set()
+        return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        return set()
+
+
 class FileDiscovery:
     """Walk target directory and build a list of FileEntry objects."""
 
-    def __init__(self, target_path: Path, exclude_patterns: list[str] | None = None):
+    def __init__(
+        self,
+        target_path: Path,
+        exclude_patterns: list[str] | None = None,
+        diff_files: set[str] | None = None,
+    ):
         self.target_path = target_path.resolve()
         self.exclude_patterns = exclude_patterns or []
+        self.diff_files = diff_files
 
     def discover(self) -> list[FileEntry]:
         if not self.target_path.is_dir():
@@ -102,5 +130,9 @@ class FileDiscovery:
                 continue
 
             entries.append(FileEntry(path=item, relative_path=relative_path))
+
+        # Filter to diff files if set
+        if self.diff_files is not None:
+            entries = [e for e in entries if e.relative_path in self.diff_files]
 
         return entries

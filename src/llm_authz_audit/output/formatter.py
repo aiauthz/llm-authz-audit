@@ -26,12 +26,12 @@ class FormatterFactory:
     def get(cls, name: str) -> BaseFormatter:
         if name not in cls._formatters:
             # Trigger imports
-            from llm_authz_audit.output import console, json_output  # noqa: F401
+            from llm_authz_audit.output import console, json_output, sarif  # noqa: F401
         if name not in cls._formatters:
             raise ValueError(f"Unknown formatter: {name}. Available: {list(cls._formatters.keys())}")
         return cls._formatters[name]()
 
     @classmethod
     def available(cls) -> list[str]:
-        from llm_authz_audit.output import console, json_output  # noqa: F401
+        from llm_authz_audit.output import console, json_output, sarif  # noqa: F401
         return list(cls._formatters.keys())

@@ -8,7 +8,7 @@ from llm_authz_audit.analyzers import get_registered_analyzers
 from llm_authz_audit.core.config import ToolConfig
 from llm_authz_audit.core.context import ScanContext
 from llm_authz_audit.core.discovery import FileDiscovery
-from llm_authz_audit.core.finding import Finding, Severity
+from llm_authz_audit.core.finding import Confidence, Finding, Severity
 
 if TYPE_CHECKING:
     from llm_authz_audit.analyzers.base import BaseAnalyzer
@@ -37,9 +37,15 @@ class ScanEngine:
 
     def scan(self) -> ScanResult:
         # 1. File discovery
+        diff_files = None
+        if self.config.diff_ref:
+            from llm_authz_audit.core.discovery import get_diff_files
+            diff_files = get_diff_files(self.config.target_path, self.config.diff_ref)
+
         discovery = FileDiscovery(
             self.config.target_path,
             exclude_patterns=self.config.exclude_patterns,
+            diff_files=diff_files,
         )
         files = discovery.discover()
 
@@ -63,13 +69,32 @@ class ScanEngine:
             else:
                 analyzers_skipped.append(analyzer.name)
 
-        # 4. Deduplicate
+        # 4. Cross-file auth context: lower EP001/EP003 confidence if project has auth
+        from llm_authz_audit.analyzers.auth_context import build_auth_context
+        auth_ctx = build_auth_context(context)
+        if auth_ctx.has_project_auth:
+            for f in all_findings:
+                if f.rule_id in ("EP001", "EP003"):
+                    f.confidence = Confidence.LOW
+                    f.metadata["auth_context"] = auth_ctx.summary
+
+        # 5. Deduplicate
         all_findings = self._deduplicate(all_findings)
 
-        # 5. Sort by severity (critical first)
+        # 5. Apply suppressions
+        if self.config.suppress_file:
+            from llm_authz_audit.core.suppression import SuppressionLoader, apply_suppressions
+            suppressions = SuppressionLoader.load(self.config.suppress_file)
+            all_findings = apply_suppressions(all_findings, suppressions)
+
+        # 6. Filter by minimum confidence
+        if self.config.min_confidence is not None:
+            all_findings = [f for f in all_findings if f.confidence >= self.config.min_confidence]
+
+        # 7. Sort by severity (critical first)
         all_findings.sort(key=lambda f: f.severity, reverse=True)
 
-        # 6. Determine exit code
+        # 8. Determine exit code
         fail_threshold = self.config.fail_on
         has_failures = any(f.severity >= fail_threshold for f in all_findings)
 
