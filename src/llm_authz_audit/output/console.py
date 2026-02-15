@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 from collections import defaultdict
 
 from rich.console import Console
@@ -39,7 +40,7 @@ def _section_box(title: str) -> Panel:
 
 class ConsoleFormatter(BaseFormatter):
     def format(self, result: ScanResult) -> str:
-        console = Console(record=True, width=120)
+        console = Console(record=True, width=120, file=io.StringIO())
 
         # ── Findings ──
         if not result.findings:
