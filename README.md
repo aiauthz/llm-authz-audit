@@ -1,6 +1,7 @@
-# llm-authz-audit
+<p align="center">
+  <img src="docs/logo.svg" alt="llm-authz-audit logo" width="520"/>
+</p>
 
-**Static security analyzer for LLM applications — eslint for LLM security.**
 
 [![npm](https://img.shields.io/npm/v/llm-authz-audit)](https://www.npmjs.com/package/llm-authz-audit)
 [![PyPI](https://img.shields.io/pypi/v/llm-authz-audit)](https://pypi.org/project/llm-authz-audit/)
