@@ -1,0 +1,22 @@
+rules:
+  - id: EP001
+    title: "Unauthenticated LLM endpoint"
+    severity: high
+    pattern: '@app\.(post|get|put|delete|patch|route)\s*\(\s*["\x27].*(?:chat|completion|generate|llm|prompt|inference|embed|agent|ask|query|predict|rag)'
+    file_types: ["*.py"]
+    suppress_if: ['Depends\(', 'login_required', 'require_auth', 'auth_required', 'jwt_required']
+    owasp_llm: "LLM06"
+    remediation: "Add authentication: Depends(get_current_user) for FastAPI, @login_required for Flask."
+    description: "LLM endpoint detected without authentication middleware."
+    analyzer: "EndpointAnalyzer"
+
+  - id: EP002
+    title: "LLM endpoint without rate limiting"
+    severity: medium
+    pattern: '@app\.(post|get)\s*\(\s*["\x27].*(?:chat|completion|generate|llm|prompt|inference)'
+    file_types: ["*.py"]
+    suppress_if: ['limiter', 'rate_limit', 'throttle', 'slowapi']
+    owasp_llm: "LLM04"
+    remediation: "Add rate limiting middleware (e.g., slowapi, fastapi-limiter)."
+    description: "LLM endpoint without rate limiting — vulnerable to abuse and cost attacks."
+    analyzer: "EndpointAnalyzer"

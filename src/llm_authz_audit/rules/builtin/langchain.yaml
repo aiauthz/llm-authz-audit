@@ -1,0 +1,44 @@
+rules:
+  - id: TR001
+    title: "LangChain tool without permission checks"
+    severity: high
+    pattern: '@tool'
+    file_types: ["*.py"]
+    suppress_if: ['permission', 'authorize', 'auth_check', 'rbac', 'role_check', 'allowed_tools']
+    owasp_llm: "LLM06"
+    remediation: "Add permission checks before tool execution. Use a tool access control list."
+    description: "LangChain @tool decorator found without surrounding permission or authorization checks."
+    analyzer: "ToolRBACAnalyzer"
+
+  - id: TR002
+    title: "Destructive LangChain tool without safeguards"
+    severity: critical
+    pattern: '@tool[\s\S]*(?:delete|drop|remove|execute|admin|destroy|truncate|kill)'
+    file_types: ["*.py"]
+    suppress_if: ['permission', 'authorize', 'confirm', 'approval', 'rbac']
+    owasp_llm: "LLM06"
+    remediation: "Add confirmation prompts and RBAC checks for destructive tool operations."
+    description: "Destructive tool operation without authorization or confirmation safeguards."
+    analyzer: "ToolRBACAnalyzer"
+
+  - id: SI001
+    title: "Shared conversation memory without user scoping"
+    severity: high
+    pattern: 'ConversationBufferMemory\(\)'
+    file_types: ["*.py"]
+    suppress_if: ['user_id', 'session_id', 'tenant', 'user_key', 'namespace']
+    owasp_llm: "LLM06"
+    remediation: "Scope memory per user/session: ConversationBufferMemory(memory_key=f'history_{user_id}')."
+    description: "Shared conversation memory may leak data between users."
+    analyzer: "SessionIsolationAnalyzer"
+
+  - id: RAG001
+    title: "Vector store retrieval without metadata filtering"
+    severity: high
+    pattern: '\.as_retriever\(\)'
+    file_types: ["*.py"]
+    suppress_if: ['search_kwargs.*filter', 'metadata_filter', 'where_filter', 'user_id']
+    owasp_llm: "LLM06"
+    remediation: "Add metadata filters: retriever = store.as_retriever(search_kwargs={'filter': {'user_id': uid}})."
+    description: "Retriever created without document-level access control filters."
+    analyzer: "RAGACLAnalyzer"

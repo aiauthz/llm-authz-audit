@@ -1,0 +1,33 @@
+rules:
+  - id: MCP001
+    title: "MCP server with root filesystem access"
+    severity: critical
+    pattern: '["/''][\s]*/'
+    file_types: ["*.json", "*.yaml", "*.yml"]
+    suppress_if: ['restricted', 'sandboxed', 'read_only']
+    owasp_llm: "LLM06"
+    remediation: "Restrict MCP server filesystem access to specific directories."
+    description: "MCP server configured with root filesystem access."
+    analyzer: "MCPPermissionAnalyzer"
+
+  - id: MCP002
+    title: "MCP server without authentication"
+    severity: high
+    pattern: '(?:url|endpoint|server).*(?:http://|localhost)'
+    file_types: ["*.json", "*.yaml", "*.yml"]
+    suppress_if: ['auth', 'token', 'bearer', 'api_key', 'apiKey', 'Authorization']
+    owasp_llm: "LLM06"
+    remediation: "Add authentication headers to MCP server connections."
+    description: "MCP server connection without authentication configuration."
+    analyzer: "MCPPermissionAnalyzer"
+
+  - id: MCP003
+    title: "MCP wildcard tool grants"
+    severity: high
+    pattern: '(?:tools|permissions).*\*'
+    file_types: ["*.json", "*.yaml", "*.yml"]
+    suppress_if: ['restricted', 'deny', 'block']
+    owasp_llm: "LLM06"
+    remediation: "Use explicit tool grants instead of wildcards."
+    description: "MCP configuration grants wildcard access to tools."
+    analyzer: "MCPPermissionAnalyzer"
