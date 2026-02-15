@@ -35,6 +35,7 @@ def scan(
     ai_model: Annotated[str, typer.Option("--ai-model", help="AI model name")] = "claude-sonnet-4-5-20250929",
     config: Annotated[Optional[Path], typer.Option("--config", help="Path to config file")] = None,
     suppress: Annotated[Optional[Path], typer.Option("--suppress", help="Path to suppression file")] = None,
+    quiet: Annotated[bool, typer.Option("-q", "--quiet", help="Suppress the intro banner")] = False,
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show debug output")] = False,
 ) -> None:
     """Scan a directory for LLM security issues."""
@@ -63,7 +64,7 @@ def scan(
 
     engine = ScanEngine(tool_config)
 
-    if format == "console":
+    if format == "console" and not quiet:
         from llm_authz_audit.core.rule import RuleLoader
         from llm_authz_audit.output.banner import print_banner
 
@@ -72,6 +73,9 @@ def scan(
             target=target,
             analyzers_loaded=len(engine.analyzers),
             rules_loaded=len(RuleLoader.load_all_builtin()),
+            fail_on=fail_on,
+            exclude_patterns=exclude.split(",") if exclude else None,
+            config_file=config,
         )
 
     result = engine.scan()

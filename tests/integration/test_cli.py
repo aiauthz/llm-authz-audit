@@ -54,6 +54,7 @@ class TestCLIScan:
         result = runner.invoke(app, ["scan", str(tmp_path)])
         assert "authz-audit" in result.output
         assert "Analyzers:" in result.output
+        assert "Fail on:" in result.output
 
     def test_scan_json_has_no_banner(self, tmp_path):
         import json
@@ -62,6 +63,18 @@ class TestCLIScan:
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert "findings" in data
+
+    def test_scan_quiet_suppresses_banner(self, tmp_path):
+        (tmp_path / "app.py").write_text('x = 1\n')
+        result = runner.invoke(app, ["scan", str(tmp_path), "--quiet"])
+        assert "╦" not in result.output
+        assert "Analyzers:" not in result.output
+        assert "Fail on:" not in result.output
+
+    def test_scan_banner_shows_exclude(self, tmp_path):
+        (tmp_path / "app.py").write_text('x = 1\n')
+        result = runner.invoke(app, ["scan", str(tmp_path), "--exclude", "tests/*,*.md"])
+        assert "Exclude:" in result.output
 
 
 class TestCLIListAnalyzers:

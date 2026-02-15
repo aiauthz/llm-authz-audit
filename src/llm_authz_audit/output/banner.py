@@ -18,7 +18,7 @@ _ART = """\
   [bold cyan]╩═╝ ╩═╝ ╩ ╩[/bold cyan]   [bold blue]authz-audit[/bold blue]"""
 
 _TAGLINE = "  Static Security Analyzer for LLM Applications"
-_URL = "https://github.com/aiauthz/llm-authz-audit"
+_URL = "  https://github.com/aiauthz/llm-authz-audit"
 
 
 def print_banner(
@@ -27,6 +27,9 @@ def print_banner(
     target: Path,
     analyzers_loaded: int,
     rules_loaded: int,
+    fail_on: str = "high",
+    exclude_patterns: list[str] | None = None,
+    config_file: Path | None = None,
 ) -> None:
     """Render the intro banner to *console*."""
     console.print(_ART, highlight=False)
@@ -39,11 +42,12 @@ def print_banner(
         f" [dim]|[/dim] [dim]Rules:[/dim] [dim bold]{rules_loaded} loaded[/dim bold]",
         highlight=False,
     )
-    console.print()
-    console.print("[dim]  Usage:[/dim]", highlight=False)
-    console.print("[dim]    llm-authz-audit scan /path/to/project[/dim]", highlight=False)
-    console.print("[dim]    llm-authz-audit scan . --format json[/dim]", highlight=False)
-    console.print("[dim]    llm-authz-audit scan . --analyzers SecretsAnalyzer,EndpointAnalyzer[/dim]", highlight=False)
-    console.print("[dim]    llm-authz-audit scan . --ai                  [italic]# LLM-powered deep analysis[/italic][/dim]", highlight=False)
-    console.print("[dim]    llm-authz-audit scan . --fail-on critical    [italic]# exit non-zero only on critical[/italic][/dim]", highlight=False)
+    console.print(f"  [dim]Fail on:[/dim]  [dim bold]{fail_on}[/dim bold]", highlight=False)
+    if config_file:
+        console.print(f"  [dim]Config:[/dim]   [dim bold]{config_file}[/dim bold]", highlight=False)
+    if exclude_patterns:
+        console.print(
+            f"  [dim]Exclude:[/dim]  [dim bold]{', '.join(exclude_patterns)}[/dim bold]",
+            highlight=False,
+        )
     console.print()

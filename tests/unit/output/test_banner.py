@@ -46,10 +46,27 @@ class TestPrintBanner:
         output = self._render()
         assert "github.com/aiauthz/llm-authz-audit" in output
 
-    def test_contains_usage_examples(self):
+    def test_contains_fail_on(self):
+        output = self._render(fail_on="critical")
+        assert "critical" in output
+
+    def test_default_fail_on(self):
         output = self._render()
-        assert "Usage:" in output
-        assert "llm-authz-audit scan" in output
-        assert "--format json" in output
-        assert "--ai" in output
-        assert "--fail-on critical" in output
+        assert "high" in output
+
+    def test_shows_exclude_patterns(self):
+        output = self._render(exclude_patterns=["tests/*", "*.md"])
+        assert "tests/*" in output
+        assert "*.md" in output
+
+    def test_no_exclude_when_empty(self):
+        output = self._render()
+        assert "Exclude:" not in output
+
+    def test_shows_config_file(self):
+        output = self._render(config_file=Path("/my/.llm-audit.yaml"))
+        assert ".llm-audit.yaml" in output
+
+    def test_no_config_when_none(self):
+        output = self._render()
+        assert "Config:" not in output
