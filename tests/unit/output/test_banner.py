@@ -45,3 +45,11 @@ class TestPrintBanner:
     def test_contains_url(self):
         output = self._render()
         assert "github.com/aiauthz/llm-authz-audit" in output
+
+    def test_contains_usage_examples(self):
+        output = self._render()
+        assert "Usage:" in output
+        assert "llm-authz-audit scan" in output
+        assert "--format json" in output
+        assert "--ai" in output
+        assert "--fail-on critical" in output

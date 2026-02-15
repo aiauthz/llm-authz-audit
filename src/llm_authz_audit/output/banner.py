@@ -40,3 +40,10 @@ def print_banner(
         highlight=False,
     )
     console.print()
+    console.print("[dim]  Usage:[/dim]", highlight=False)
+    console.print("[dim]    llm-authz-audit scan /path/to/project[/dim]", highlight=False)
+    console.print("[dim]    llm-authz-audit scan . --format json[/dim]", highlight=False)
+    console.print("[dim]    llm-authz-audit scan . --analyzers SecretsAnalyzer,EndpointAnalyzer[/dim]", highlight=False)
+    console.print("[dim]    llm-authz-audit scan . --ai                  [italic]# LLM-powered deep analysis[/italic][/dim]", highlight=False)
+    console.print("[dim]    llm-authz-audit scan . --fail-on critical    [italic]# exit non-zero only on critical[/italic][/dim]", highlight=False)
+    console.print()
