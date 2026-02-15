@@ -1,0 +1,33 @@
+rules:
+  - id: PI001
+    title: "Unsanitized user input in LLM prompt"
+    severity: critical
+    pattern: "(f['\"].*\\{(user_input|query|message|prompt|question)\\}|\\.(format)\\(.*user_input)"
+    file_types: ["*.py"]
+    owasp_llm: "LLM01"
+    description: "User-supplied input is directly interpolated into an LLM prompt without sanitization, enabling prompt injection attacks."
+    remediation: "Sanitize user input before interpolation, or use structured prompt templates with input delimiters."
+    analyzer: "PromptInjectionAnalyzer"
+    suppress_if: ["sanitize", "escape", "delimiter", "validate", "bleach", "markupsafe", "clean_input"]
+
+  - id: PI002
+    title: "Direct string concatenation in LLM prompt"
+    severity: high
+    pattern: "(prompt|template|instruction|messages)\\s*[+=]"
+    file_types: ["*.py"]
+    owasp_llm: "LLM01"
+    description: "Prompt variable is built via string concatenation, which may allow prompt injection if external data is concatenated."
+    remediation: "Use parameterized prompt templates instead of string concatenation."
+    analyzer: "PromptInjectionAnalyzer"
+    suppress_if: ["sanitize", "escape", "validate"]
+
+  - id: PI003
+    title: "Missing prompt/input delimiter"
+    severity: medium
+    pattern: "(user_input|query|message).*(openai|anthropic|chat|completion|generate|llm)"
+    file_types: ["*.py"]
+    owasp_llm: "LLM01"
+    description: "Function combines user input with LLM calls but lacks input delimiters to separate instructions from data."
+    remediation: "Use clear delimiters (e.g., triple backticks, XML tags) to separate user input from system instructions."
+    analyzer: "PromptInjectionAnalyzer"
+    suppress_if: ["delimiter", "```", "<input>", "<user>"]

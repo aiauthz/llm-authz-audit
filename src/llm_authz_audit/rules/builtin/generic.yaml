@@ -1,0 +1,55 @@
+rules:
+  - id: CF001
+    title: "Credential in prompt template"
+    severity: critical
+    pattern: '(?:f["\x27]|\.format\().*(?:password|secret|key|token|credential|api_key)'
+    file_types: ["*.py"]
+    suppress_if: ['# nosec', '# noqa', 'mask', 'redact']
+    owasp_llm: "LLM06"
+    remediation: "Never include credentials in prompt templates. Use sanitized references."
+    description: "Sensitive credentials may be forwarded to LLM via prompt template."
+    analyzer: "CredentialForwardingAnalyzer"
+
+  - id: AL001
+    title: "LLM API call without logging"
+    severity: medium
+    pattern: '(?:openai|anthropic|ChatOpenAI|ChatAnthropic|Anthropic|OpenAI)\s*\('
+    file_types: ["*.py"]
+    suppress_if: ['logging', 'logger', 'log\.', 'audit', 'print\(']
+    owasp_llm: "LLM09"
+    remediation: "Add logging around LLM API calls for audit trails."
+    description: "LLM API call without surrounding logging for audit purposes."
+    analyzer: "AuditLoggingAnalyzer"
+
+  - id: IV001
+    title: "User input passed directly to LLM"
+    severity: medium
+    pattern: '(?:request\.body|request\.json|request\.form|request\.data|request\.query)'
+    file_types: ["*.py"]
+    suppress_if: ['validate', 'sanitize', 'clean', 'strip', 'escape', 'max_length', 'len\(']
+    owasp_llm: "LLM01"
+    remediation: "Validate and sanitize user input before passing to LLM."
+    description: "User input may be passed directly to LLM without validation."
+    analyzer: "InputValidationAnalyzer"
+
+  - id: OF001
+    title: "LLM output without filtering"
+    severity: medium
+    pattern: '(?:\.content|\.text|response\[.message.\]|completion\.choices)'
+    file_types: ["*.py"]
+    suppress_if: ['filter', 'sanitize', 'redact', 'pii', 'mask', 'guard', 'moderate']
+    owasp_llm: "LLM02"
+    remediation: "Add output filtering for PII, sensitive data, and harmful content."
+    description: "LLM output used without content filtering or PII redaction."
+    analyzer: "OutputFilteringAnalyzer"
+
+  - id: RL001
+    title: "Missing rate limiting on LLM endpoint"
+    severity: medium
+    pattern: '@app\.(post|get)\s*\(\s*["\x27].*(?:chat|completion|generate|llm|prompt)'
+    file_types: ["*.py"]
+    suppress_if: ['limiter', 'rate_limit', 'throttle', 'slowapi', 'RateLimiter']
+    owasp_llm: "LLM04"
+    remediation: "Add rate limiting with slowapi or fastapi-limiter."
+    description: "LLM endpoint without rate limiting — vulnerable to denial of wallet attacks."
+    analyzer: "RateLimitingAnalyzer"
