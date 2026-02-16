@@ -66,9 +66,12 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Copy README to npm package
+        run: cp README.md npm/README.md
+
       - name: Publish to npm
         working-directory: npm
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 
