@@ -1,0 +1,116 @@
+name: 'LLM AuthZ Audit'
+description: 'Static security analyzer for LLM applications — finds OWASP LLM Top 10 issues before they reach production'
+
+branding:
+  icon: 'shield'
+  color: 'green'
+
+inputs:
+  path:
+    description: 'Path to scan'
+    required: false
+    default: '.'
+  format:
+    description: 'Output format: console, json, sarif'
+    required: false
+    default: 'sarif'
+  fail-on:
+    description: 'Minimum severity for non-zero exit: critical, high, medium, low'
+    required: false
+    default: 'high'
+  min-confidence:
+    description: 'Minimum confidence to include: low, medium, high'
+    required: false
+    default: ''
+  exclude:
+    description: 'Comma-separated glob patterns to exclude'
+    required: false
+    default: ''
+  extra-rules:
+    description: 'Comma-separated paths to custom rule directories'
+    required: false
+    default: ''
+  suppress:
+    description: 'Path to suppression YAML file'
+    required: false
+    default: ''
+  diff:
+    description: 'Only scan files changed since this git ref (e.g. HEAD~1, main)'
+    required: false
+    default: ''
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.12'
+  version:
+    description: 'llm-authz-audit version to install (default: latest)'
+    required: false
+    default: ''
+
+outputs:
+  sarif-file:
+    description: 'Path to SARIF output file (when format=sarif)'
+    value: ${{ steps.scan.outputs.sarif-file }}
+  exit-code:
+    description: 'Exit code from the scan (0=pass, 1=findings, 2=error)'
+    value: ${{ steps.scan.outputs.exit-code }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install llm-authz-audit
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.version }}" ]; then
+          pip install llm-authz-audit==${{ inputs.version }}
+        else
+          pip install llm-authz-audit
+        fi
+
+    - name: Run scan
+      id: scan
+      shell: bash
+      run: |
+        CMD="llm-authz-audit scan ${{ inputs.path }}"
+        CMD="$CMD --format ${{ inputs.format }}"
+        CMD="$CMD --fail-on ${{ inputs.fail-on }}"
+
+        if [ -n "${{ inputs.min-confidence }}" ]; then
+          CMD="$CMD --min-confidence ${{ inputs.min-confidence }}"
+        fi
+        if [ -n "${{ inputs.exclude }}" ]; then
+          CMD="$CMD --exclude ${{ inputs.exclude }}"
+        fi
+        if [ -n "${{ inputs.extra-rules }}" ]; then
+          CMD="$CMD --extra-rules ${{ inputs.extra-rules }}"
+        fi
+        if [ -n "${{ inputs.suppress }}" ]; then
+          CMD="$CMD --suppress ${{ inputs.suppress }}"
+        fi
+        if [ -n "${{ inputs.diff }}" ]; then
+          CMD="$CMD --diff ${{ inputs.diff }}"
+        fi
+
+        SARIF_FILE=""
+        if [ "${{ inputs.format }}" = "sarif" ]; then
+          SARIF_FILE="llm-authz-audit-results.sarif"
+          CMD="$CMD > $SARIF_FILE"
+        fi
+
+        echo "Running: $CMD"
+        set +e
+        eval "$CMD"
+        EXIT_CODE=$?
+        set -e
+
+        echo "exit-code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+        if [ -n "$SARIF_FILE" ]; then
+          echo "sarif-file=$SARIF_FILE" >> "$GITHUB_OUTPUT"
+        fi
+
+        exit $EXIT_CODE
