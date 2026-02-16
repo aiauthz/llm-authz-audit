@@ -3,9 +3,8 @@
 </p>
 
 
-[![npm](https://img.shields.io/np
-m/v/llm-authz-audit)](https://www.npmjs.com/package/llm-authz-audit)
-[![PyPI](https://img.shields.io/pypi/v/llm-authz-audit)](https://pypi.org/project/llm-authz-audit/)
+[![npm](https://img.shields.io/npm/v/llm-authz-audit)](https://www.npmjs.com/package/llm-authz-audit)
+[![PyPI](https://img.shields.io/pypi/v/llm-authz-audit)](https://pypi.org/project/llm-authz-audit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-245%20passing-brightgreen)]()
 
