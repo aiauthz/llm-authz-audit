@@ -8,7 +8,7 @@ from llm_authz_audit.analyzers import get_registered_analyzers
 from llm_authz_audit.core.config import ToolConfig
 from llm_authz_audit.core.context import ScanContext
 from llm_authz_audit.core.discovery import FileDiscovery
-from llm_authz_audit.core.finding import Confidence, Finding, Severity
+from llm_authz_audit.core.finding import Confidence, Finding
 
 if TYPE_CHECKING:
     from llm_authz_audit.analyzers.base import BaseAnalyzer

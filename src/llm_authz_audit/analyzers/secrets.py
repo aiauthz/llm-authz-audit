@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import re
-from fnmatch import fnmatch
 
 from llm_authz_audit.analyzers import register_analyzer
 from llm_authz_audit.analyzers.base import BaseAnalyzer
 from llm_authz_audit.core.context import ScanContext
-from llm_authz_audit.core.finding import Confidence, Finding, Severity
+from llm_authz_audit.core.finding import Confidence, Finding
 from llm_authz_audit.core.rule import RuleLoader
 
 

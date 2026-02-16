@@ -204,6 +204,6 @@ class TestAIAnalyzer:
         result = _make_result(findings)
 
         analyzer = AIAnalyzer(llm_client=mock_llm)
-        refined = analyzer.refine(result, engine, max_findings=10)
+        analyzer.refine(result, engine, max_findings=10)
 
         assert len(mock_llm.calls) == 3  # All reviewed

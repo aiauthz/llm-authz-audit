@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import ast
 import re
 
 from llm_authz_audit.analyzers import register_analyzer
 from llm_authz_audit.analyzers.base import BaseAnalyzer
 from llm_authz_audit.core.context import ScanContext
 from llm_authz_audit.core.finding import Confidence, Finding, Severity
-from llm_authz_audit.parsers.python_ast import find_fstring_variables, has_import
+from llm_authz_audit.parsers.python_ast import find_fstring_variables
 
 _SENSITIVE_NAMES = {
     "password", "passwd", "pwd", "secret", "token",

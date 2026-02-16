@@ -1,6 +1,5 @@
 """Tests for FileDiscovery."""
 
-from pathlib import Path
 
 from llm_authz_audit.core.discovery import FileDiscovery
 

@@ -1,6 +1,5 @@
 """Tests for --diff mode: get_diff_files and FileDiscovery filtering."""
 
-from pathlib import Path
 from unittest.mock import patch
 
 from llm_authz_audit.core.discovery import FileDiscovery, get_diff_files

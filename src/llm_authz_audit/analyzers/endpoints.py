@@ -8,7 +8,7 @@ from llm_authz_audit.analyzers import register_analyzer
 from llm_authz_audit.analyzers.base import BaseAnalyzer
 from llm_authz_audit.core.context import ScanContext
 from llm_authz_audit.core.finding import Confidence, Finding, Severity
-from llm_authz_audit.parsers.python_ast import get_decorators, has_import
+from llm_authz_audit.parsers.python_ast import has_import
 
 # Route decorator names indicating endpoints
 _ROUTE_DECORATORS = {

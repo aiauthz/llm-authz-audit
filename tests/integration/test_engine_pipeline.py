@@ -1,6 +1,5 @@
 """Integration tests for the full scan pipeline."""
 
-from pathlib import Path
 
 from llm_authz_audit.core.config import ToolConfig
 from llm_authz_audit.core.engine import ScanEngine

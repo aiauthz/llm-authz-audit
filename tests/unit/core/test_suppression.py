@@ -1,8 +1,6 @@
 """Tests for suppression loading and matching."""
 
-from pathlib import Path
 
-import pytest
 
 from llm_authz_audit.core.finding import Confidence, Finding, Severity
 from llm_authz_audit.core.suppression import Suppression, SuppressionLoader, apply_suppressions

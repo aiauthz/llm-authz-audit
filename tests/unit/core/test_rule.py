@@ -1,6 +1,5 @@
 """Tests for Rule and RuleLoader."""
 
-from pathlib import Path
 
 import yaml
 

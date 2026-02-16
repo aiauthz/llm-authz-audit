@@ -1,6 +1,5 @@
 """Integration tests for CLI commands."""
 
-from pathlib import Path
 
 from typer.testing import CliRunner
 

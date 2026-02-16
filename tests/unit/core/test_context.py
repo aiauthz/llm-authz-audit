@@ -1,9 +1,7 @@
 """Tests for ScanContext and FileEntry."""
 
-from pathlib import Path
 
-from llm_authz_audit.core.context import FileEntry, ScanContext
-from llm_authz_audit.core.config import ToolConfig
+from llm_authz_audit.core.context import FileEntry
 
 
 class TestFileEntry:

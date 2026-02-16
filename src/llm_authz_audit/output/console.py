@@ -49,7 +49,7 @@ class ConsoleFormatter(BaseFormatter):
             console.print()
         else:
             count = len(result.findings)
-            blocking = sum(
+            sum(
                 1 for f in result.findings
                 if f.severity >= Severity.HIGH
             )

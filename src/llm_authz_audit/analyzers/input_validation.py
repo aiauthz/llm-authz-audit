@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import re
 
 from llm_authz_audit.analyzers import register_analyzer

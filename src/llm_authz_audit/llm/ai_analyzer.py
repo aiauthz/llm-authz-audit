@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from llm_authz_audit.core.finding import Confidence, Finding, Severity
+from llm_authz_audit.core.finding import Confidence, Finding
 from llm_authz_audit.llm.prompts import SYSTEM_PROMPT, build_finding_review_prompt
 from llm_authz_audit.llm.providers import get_provider
 
@@ -73,7 +73,6 @@ class AIAnalyzer:
 
     def _get_context(self, finding: Finding, engine: ScanEngine) -> str:
         """Get surrounding code context for a finding."""
-        from pathlib import Path
 
         file_path = engine.config.target_path / finding.file_path
         if not file_path.exists():

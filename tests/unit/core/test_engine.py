@@ -1,6 +1,5 @@
 """Tests for ScanEngine."""
 
-from pathlib import Path
 
 from llm_authz_audit.core.config import ToolConfig
 from llm_authz_audit.core.engine import ScanEngine

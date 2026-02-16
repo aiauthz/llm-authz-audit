@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import re
 
 from llm_authz_audit.analyzers import register_analyzer
@@ -111,7 +110,6 @@ class MCPPermissionAnalyzer(BaseAnalyzer):
     def _check_wildcard_tools(
         self, data: dict, file_entry: FileEntry, findings: list[Finding], content_lines: list[str]
     ) -> None:
-        content = file_entry.content
         for lineno, line in enumerate(content_lines, start=1):
             if re.search(r'(?:tools|permissions).*\*', line):
                 if any(kw in line.lower() for kw in ("restricted", "deny", "block")):
