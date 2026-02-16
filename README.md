@@ -1,9 +1,10 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="llm-authz-audit logo" width="520"/>
+  <img src="https://raw.githubusercontent.com/aiauthz/llm-authz-audit/main/docs/logo.svg" alt="llm-authz-audit logo" width="520"/>
 </p>
 
 
-[![npm](https://img.shields.io/npm/v/llm-authz-audit)](https://www.npmjs.com/package/llm-authz-audit)
+[![npm](https://img.shields.io/np
+m/v/llm-authz-audit)](https://www.npmjs.com/package/llm-authz-audit)
 [![PyPI](https://img.shields.io/pypi/v/llm-authz-audit)](https://pypi.org/project/llm-authz-audit/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-245%20passing-brightgreen)]()

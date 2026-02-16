@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="llm-authz-audit logo" width="520"/>
+  <img src="https://raw.githubusercontent.com/aiauthz/llm-authz-audit/main/docs/logo.svg" alt="llm-authz-audit logo" width="520"/>
 </p>
 
 
